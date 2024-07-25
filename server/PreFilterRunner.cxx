@@ -40,13 +40,20 @@
 #include <vtkPointData.h>
 #include <vtkXMLImageDataReader.h>
 
-int main(int argc, char* argv[])
-{
-  char arrayName[] = "v03";
-  double contourValue = 0.3;
+#include <filesystem>
+#include <string>
 
+void ProcessContourValue(vtkContourPreFilter* pc, double value)
+{
+  pc->SetValue(0, value);
+  pc->Update();
+  std::cout << value << " " << pc->GetResult().size() << std::endl;
+}
+
+void ProcessFile(const char* fileName, const char* arrayName)
+{
   vtkNew<vtkXMLImageDataReader> reader;
-  reader->SetFileName("/Users/qingzheng/pv_insitu_300x300x300_04566.parquet.vti");
+  reader->SetFileName(fileName);
   reader->UpdateInformation();
   vtkDataArraySelection* das = reader->GetPointDataArraySelection();
   das->DisableAllArrays();
@@ -56,8 +63,19 @@ int main(int argc, char* argv[])
   pc->SetInputConnection(reader->GetOutputPort());
   pc->SetInputArrayToProcess(
     0, 0, 0, vtkDataObject::FieldAssociations::FIELD_ASSOCIATION_POINTS, arrayName);
-  pc->SetValue(0, contourValue);
-  pc->Update();
-  std::cout << pc->GetResult().size() << std::endl;
+
+  for (int i = 1; i <= 9; i++)
+    ProcessContourValue(pc, i / 10.0);
+}
+
+int main(int argc, char* argv[])
+{
+  char arrayName[] = "v02";
+  for (const auto& entry : std::filesystem::directory_iterator(argv[0]))
+  {
+    std::cout << entry.path() << std::endl;
+    ProcessFile(entry.path().c_str(), arrayName);
+  }
+
   return 0;
 }
