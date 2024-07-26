@@ -31,73 +31,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "vtkContourPreFilter.h"
 
-#include <vtkDataArraySelection.h>
-#include <vtkDataObject.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkXMLImageDataReader.h>
-#include <vtkZLibDataCompressor.h>
+#include <rpc/client.h>
 
-#include <filesystem>
-#include <string>
-
-size_t CompressMap(const std::unordered_map<int, float>& map)
-{
-  vtkNew<vtkZLibDataCompressor> compressor;
-  size_t sz0 = map.size() << 3;
-  auto* const buf0 = new unsigned char[sz0];
-  auto* const buf1 = new unsigned char[sz0];
-  unsigned char* ptr = buf0;
-  for (auto const& [key, val] : map)
-  {
-    memcpy(ptr, (unsigned char*)&key, 4);
-    ptr += 4;
-    memcpy(ptr, (unsigned char*)&val, 4);
-    ptr += 4;
-  }
-  size_t sz1 = compressor->Compress(buf0, sz0, buf1, sz0);
-  delete[] buf0;
-  delete[] buf1;
-  return sz1;
-}
-
-void ProcessContourValue(vtkContourPreFilter* pc, double value)
-{
-  pc->SetValue(0, value);
-  pc->Update();
-  std::cout << value << " " << pc->GetResult().size() << " " << CompressMap(pc->GetResult())
-            << std::endl;
-}
-
-void ProcessFile(const char* fileName, const char* arrayName)
-{
-  vtkNew<vtkXMLImageDataReader> reader;
-  reader->SetFileName(fileName);
-  reader->UpdateInformation();
-  vtkDataArraySelection* das = reader->GetPointDataArraySelection();
-  das->DisableAllArrays();
-  das->EnableArray(arrayName);
-
-  vtkNew<vtkContourPreFilter> pc;
-  pc->SetInputConnection(reader->GetOutputPort());
-  pc->SetInputArrayToProcess(
-    0, 0, 0, vtkDataObject::FieldAssociations::FIELD_ASSOCIATION_POINTS, arrayName);
-
-  for (int i = 1; i <= 9; i++)
-    ProcessContourValue(pc, i / 10.0);
-}
+#include <iostream>
+#include <unordered_map>
 
 int main(int argc, char* argv[])
 {
-  char arrayName[] = "v02";
-  for (const auto& entry : std::filesystem::directory_iterator(argv[1]))
-  {
-    std::cout << entry.path() << std::endl;
-    ProcessFile(entry.path().c_str(), arrayName);
-  }
-
+  rpc::client cli("localhost", 8080);
+  std::unordered_map<int, float> result = cli.call("gen_map").as<std::unordered_map<int, float>>();
+  std::cout << result.size() << std::endl;
+  std::cout << result[1] << std::endl;
+  std::cout << result[2] << std::endl;
   return 0;
 }
+

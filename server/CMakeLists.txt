@@ -34,14 +34,25 @@ find_package(VTK COMPONENTS
         CommonCore
         CommonDataModel
         CommonMisc
+        IOCore
         IOXML
 )
 if (NOT VTK_FOUND)
     message(FATAL_ERROR "Unable to locate VTK")
 endif ()
 
-foreach (tgt PreFilterRunner)
-    add_executable(${tgt} ${tgt}.cxx vtkContourPreFilter.cxx)
-    target_link_libraries(${tgt} PRIVATE ${VTK_LIBRARIES})
-    vtk_module_autoinit(TARGETS ${tgt} MODULES ${VTK_LIBRARIES})
-endforeach ()
+add_executable(PreFilterRunner PreFilterRunner.cxx vtkContourPreFilter.cxx)
+target_link_libraries(PreFilterRunner PRIVATE ${VTK_LIBRARIES})
+add_executable(ContourServer ContourServer.cxx vtkContourPreFilter.cxx)
+target_link_libraries(ContourServer PRIVATE ${VTK_LIBRARIES} librpc.a Threads::Threads)
+
+add_executable(ContourClient ContourClient.cxx)
+target_link_libraries(ContourClient PRIVATE librpc.a Threads::Threads)
+
+add_executable(DummyServer DummyServer.cxx)
+target_link_libraries(DummyServer PRIVATE librpc.a Threads::Threads)
+add_executable(DummyClient DummyClient.cxx)
+target_link_libraries(DummyClient PRIVATE librpc.a Threads::Threads)
+
+vtk_module_autoinit(TARGETS PreFilterRunner ContourServer
+        MODULES ${VTK_LIBRARIES})

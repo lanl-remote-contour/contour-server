@@ -38,7 +38,7 @@
 #include <vtkContourValues.h>
 #include <vtkFiltersCoreModule.h> // For export macro
 
-#include <map>
+#include <unordered_map>
 
 VTK_ABI_NAMESPACE_BEGIN
 class vtkImageData;
@@ -124,7 +124,7 @@ public:
   vtkGetMacro(ArrayComponent, int);
   ///@}
 
-  std::map<int, float>& GetResult() { return result; }
+  std::unordered_map<int, float>& GetResult() { return result; }
 
 protected:
   vtkContourPreFilter();
@@ -137,7 +137,7 @@ protected:
   int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int ArrayComponent;
-  std::map<int, float> result;
+  std::unordered_map<int, float> result;
 
 private:
   vtkContourPreFilter(const vtkContourPreFilter&) = delete;

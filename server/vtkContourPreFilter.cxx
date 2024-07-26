@@ -77,7 +77,7 @@ template <class T>
 void PreProcessImage(
   vtkContourPreFilter* self, int* exExt, vtkImageData* data, T* ptr, vtkDataArray* inScalars)
 {
-  std::map<int, T> result;
+  std::unordered_map<int, T> result;
   int* inExt = data->GetExtent();
   ptr += self->GetArrayComponent();
   T *inPtrX, *inPtrY, *inPtrZ;
