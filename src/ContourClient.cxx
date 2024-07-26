@@ -68,6 +68,7 @@
 
 #include <rpc/client.h>
 
+#include <chrono>
 #include <iostream>
 #include <unordered_map>
 
@@ -76,8 +77,11 @@ int main(int argc, char* argv[])
   rpc::client cli("localhost", 8080);
   std::string file = argv[1];
   std::string col = "v03";
+  auto t0 = std::chrono::high_resolution_clock::now();
   std::unordered_map<int, float> result =
     cli.call("LoadContour", file, col, 0.1).as<std::unordered_map<int, float>>();
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::cout << std::chrono::duration<double>(t1 - t0).count() << std::endl;
   std::cout << result.size() << std::endl;
   return 0;
 }

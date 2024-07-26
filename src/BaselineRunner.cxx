@@ -31,7 +31,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "vtkContourPreFilter.h"
 
 #include <vtkDataArraySelection.h>
 #include <vtkDataObject.h>
@@ -40,11 +39,13 @@
 #include <vtkPointData.h>
 #include <vtkXMLImageDataReader.h>
 
-#include <rpc/server.h>
+#include <chrono>
+#include <iostream>
+#include <string>
 
-std::unordered_map<int, float> LoadContour(
-  const std::string& fileName, const std::string& arrayName, double value)
+void LoadContour(const std::string& fileName, const std::string& arrayName, double value)
 {
+  auto t0 = std::chrono::high_resolution_clock::now();
   vtkNew<vtkXMLImageDataReader> reader;
   reader->SetFileName(fileName.c_str());
   reader->UpdateInformation();
@@ -52,22 +53,12 @@ std::unordered_map<int, float> LoadContour(
   das->DisableAllArrays();
   das->EnableArray(arrayName.c_str());
 
-  vtkNew<vtkContourPreFilter> pc;
-  pc->SetInputConnection(reader->GetOutputPort());
-  pc->SetInputArrayToProcess(
-    0, 0, 0, vtkDataObject::FieldAssociations::FIELD_ASSOCIATION_POINTS, arrayName.c_str());
-  pc->SetValue(0, value);
-  pc->Update();
-
-  std::unordered_map<int, float> result;
-  result.swap(pc->GetResult());
-  return result;
+  reader->Update();
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::cout << std::chrono::duration<double>(t1 - t0).count() << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
-  rpc::server srv(8080);
-  srv.bind("LoadContour", LoadContour);
-  srv.run();
-  return 0;
+  LoadContour(argv[1], "v03", 0.3);
 }

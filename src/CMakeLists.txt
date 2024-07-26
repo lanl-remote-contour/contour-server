@@ -43,6 +43,10 @@ endif ()
 
 add_executable(PreFilterRunner PreFilterRunner.cxx vtkContourPreFilter.cxx)
 target_link_libraries(PreFilterRunner PRIVATE ${VTK_LIBRARIES})
+
+add_executable(BaselineRunner BaselineRunner.cxx)
+target_link_libraries(BaselineRunner PRIVATE ${VTK_LIBRARIES})
+
 add_executable(ContourServer ContourServer.cxx vtkContourPreFilter.cxx)
 target_link_libraries(ContourServer PRIVATE ${VTK_LIBRARIES} librpc.a Threads::Threads)
 
@@ -54,5 +58,5 @@ target_link_libraries(DummyServer PRIVATE librpc.a Threads::Threads)
 add_executable(DummyClient DummyClient.cxx)
 target_link_libraries(DummyClient PRIVATE librpc.a Threads::Threads)
 
-vtk_module_autoinit(TARGETS PreFilterRunner ContourServer
+vtk_module_autoinit(TARGETS PreFilterRunner ContourServer BaselineRunner
         MODULES ${VTK_LIBRARIES})
