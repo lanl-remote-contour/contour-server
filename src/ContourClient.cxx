@@ -74,8 +74,19 @@
 
 int main(int argc, char* argv[])
 {
-  rpc::client cli("localhost", 8080);
-  std::string file = argv[1];
+  if (argc < 3)
+  {
+    std::cerr << "Usage: " << argv[0] << " server_ip file_name" << std::endl;
+    return 1;
+  }
+  rpc::client cli(argv[1], 8080);
+  std::cout << "Connecting to " << argv[1] << "..." << std::endl;
+  while (cli.get_connection_state() != rpc::client::connection_state::connected)
+  {
+    // Wait
+  }
+  std::cout << "Done!" << std::endl;
+  std::string file = argv[2];
   std::string col = "v03";
   auto t0 = std::chrono::high_resolution_clock::now();
   std::unordered_map<int, float> result =
