@@ -55,7 +55,7 @@ void LoadContour(const std::string& fileName, const std::string& arrayName, doub
 
   reader->Update();
   auto t1 = std::chrono::high_resolution_clock::now();
-  std::cout << std::chrono::duration<double>(t1 - t0).count() << std::endl;
+  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << std::endl;
 }
 
 int main(int argc, char* argv[])

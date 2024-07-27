@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   std::unordered_map<int, float> result =
     cli.call("LoadContour", file, col, 0.1).as<std::unordered_map<int, float>>();
   auto t1 = std::chrono::high_resolution_clock::now();
-  std::cout << std::chrono::duration<double>(t1 - t0).count() << std::endl;
+  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << std::endl;
   std::cout << result.size() << std::endl;
   return 0;
 }
