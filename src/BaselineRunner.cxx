@@ -32,6 +32,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vtkContourFilter.h>
 #include <vtkDataArraySelection.h>
 #include <vtkDataObject.h>
 #include <vtkImageData.h>
@@ -40,25 +41,64 @@
 #include <vtkXMLImageDataReader.h>
 
 #include <chrono>
+#include <getopt.h>
 #include <iostream>
-#include <string>
+#include <stdlib.h>
 
-void LoadContour(const std::string& fileName, const std::string& arrayName, double value)
+void LoadContour(const char* fileName, const char* arrayName, double value)
 {
   auto t0 = std::chrono::high_resolution_clock::now();
+
   vtkNew<vtkXMLImageDataReader> reader;
-  reader->SetFileName(fileName.c_str());
+  reader->SetFileName(fileName);
   reader->UpdateInformation();
   vtkDataArraySelection* das = reader->GetPointDataArraySelection();
   das->DisableAllArrays();
-  das->EnableArray(arrayName.c_str());
-
+  das->EnableArray(arrayName);
   reader->Update();
+
   auto t1 = std::chrono::high_resolution_clock::now();
-  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << std::endl;
+
+  vtkNew<vtkContourFilter> contour;
+  contour->SetInputConnection(reader->GetOutputPort());
+  contour->SetInputArrayToProcess(
+    0, 0, 0, vtkDataObject::FieldAssociations::FIELD_ASSOCIATION_POINTS, arrayName);
+  contour->SetValue(0, value);
+  contour->Update();
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+
+  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << " "
+            << std::chrono::duration<double>(t2 - t1).count() << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
-  LoadContour(argv[1], "v03", 0.3);
+  const char* arr = "v03";
+  double value = 0.9;
+  int c;
+  while ((c = getopt(argc, argv, "a:c:")) != -1)
+  {
+    switch (c)
+    {
+      case 'a':
+        arr = optarg;
+        break;
+      case 'c':
+        value = atof(optarg);
+        break;
+      default:
+        std::cerr << "Use -a to specify array name and -c to specify contour value" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+  }
+  argc -= optind;
+  argv += optind;
+  if (!argc)
+  {
+    std::cerr << "Lack target vtk filename" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  LoadContour(argv[1], arr, value);
+  return 0;
 }

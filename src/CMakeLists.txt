@@ -34,6 +34,7 @@ find_package(VTK COMPONENTS
         CommonCore
         CommonDataModel
         CommonMisc
+        FiltersCore
         IOCore
         IOXML
 )
