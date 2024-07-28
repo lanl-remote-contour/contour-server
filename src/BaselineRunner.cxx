@@ -99,6 +99,9 @@ int main(int argc, char* argv[])
     std::cerr << "Lack target vtk filename" << std::endl;
     exit(EXIT_FAILURE);
   }
+  std::cout << "vtk file: " << argv[1] << std::endl;
+  std::cout << "contour value: " << value << std::endl;
+  std::cout << "array: " << arr << std::endl;
   LoadContour(argv[1], arr, value);
   return 0;
 }
