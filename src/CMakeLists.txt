@@ -41,6 +41,9 @@ if (NOT VTK_FOUND)
     message(FATAL_ERROR "Unable to locate VTK")
 endif ()
 
+add_executable(CompressUncompress CompressUncompress.cxx)
+target_link_libraries(CompressUncompress PRIVATE ${VTK_LIBRARIES})
+
 add_executable(PreFilterRunner PreFilterRunner.cxx vtkContourPreFilter.cxx)
 target_link_libraries(PreFilterRunner PRIVATE ${VTK_LIBRARIES})
 
