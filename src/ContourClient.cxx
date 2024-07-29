@@ -97,7 +97,7 @@ void MakeContour(
   auto t0 = std::chrono::high_resolution_clock::now();
 
   std::unordered_map<int, float> map =
-    cli->call("LoadContour", fileName, arrayName, 0.1).as<std::unordered_map<int, float>>();
+    cli->call("LoadContour", fileName, arrayName, value).as<std::unordered_map<int, float>>();
 
   auto t1 = std::chrono::high_resolution_clock::now();
 

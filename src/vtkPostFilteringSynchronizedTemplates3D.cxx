@@ -439,7 +439,7 @@ void ContourImage(vtkPostFilteringSynchronizedTemplates3D* self, int* exExt, vtk
           // now add any polys that need to be added
           // basically look at the isect values,
           // form an index and lookup the polys
-          if ((*s0 != -1) && j > yMin && i < xMax && k > zMin)
+          if (/*(*s0 != -1) &&*/ j > yMin && i < xMax && k > zMin)
           {
             idx = (v0 ? 4096 : 0);
             idx = idx + (*(isect1Ptr - yisectstep) > -1 ? 2048 : 0);
