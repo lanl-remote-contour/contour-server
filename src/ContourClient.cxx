@@ -65,34 +65,99 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "vtkPostFilteringSynchronizedTemplates3D.h"
+
+#include <vtkFloatArray.h>
+#include <vtkImageData.h>
+#include <vtkNew.h>
+#include <vtkPointData.h>
 
 #include <rpc/client.h>
 
 #include <chrono>
+#include <getopt.h>
 #include <iostream>
+#include <stdlib.h>
 #include <unordered_map>
+
+void MakeContour(
+  rpc::client* cli, const std::string& fileName, const std::string& arrayName, double value)
+{
+  vtkNew<vtkFloatArray> scalars;
+  scalars->SetNumberOfComponents(1);
+  scalars->SetNumberOfTuples(500 * 500 * 500);
+  scalars->FillValue(-1);
+
+  vtkNew<vtkImageData> image;
+  image->SetOrigin(-2300000, -500000, -1200000);
+  image->SetSpacing(9218.4368737, 5611.2224449, 4809.6192385);
+  image->SetExtent(0, 499, 0, 499, 0, 499);
+  image->GetPointData()->SetScalars(scalars);
+
+  auto t0 = std::chrono::high_resolution_clock::now();
+
+  std::unordered_map<int, float> map =
+    cli->call("LoadContour", fileName, arrayName, 0.1).as<std::unordered_map<int, float>>();
+
+  auto t1 = std::chrono::high_resolution_clock::now();
+
+  float* ptr = scalars->GetPointer(0);
+  for (auto const& [key, val] : map)
+  {
+    ptr[key] = val;
+  }
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+
+  vtkNew<vtkPostFilteringSynchronizedTemplates3D> contour;
+  contour->SetInputData(image);
+  contour->SetValue(0, value);
+  contour->Update();
+
+  auto t3 = std::chrono::high_resolution_clock::now();
+
+  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << " "
+            << std::chrono::duration<double>(t2 - t1).count() << " "
+            << std::chrono::duration<double>(t3 - t2).count() << std::endl;
+}
 
 int main(int argc, char* argv[])
 {
-  if (argc < 3)
+  const char* arr = "v03";
+  double value = 0.9;
+  int c;
+  while ((c = getopt(argc, argv, "a:c:")) != -1)
   {
-    std::cerr << "Usage: " << argv[0] << " server_ip file_name" << std::endl;
-    return 1;
+    switch (c)
+    {
+      case 'a':
+        arr = optarg;
+        break;
+      case 'c':
+        value = atof(optarg);
+        break;
+      default:
+        std::cerr << "Use -a to specify array name and -c to specify contour value" << std::endl;
+        exit(EXIT_FAILURE);
+    }
   }
-  rpc::client cli(argv[1], 8080);
-  std::cout << "Connecting to " << argv[1] << "..." << std::endl;
+  argc -= optind;
+  argv += optind;
+  if (argc < 2)
+  {
+    std::cerr << "Lack server_ip and file_name" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  rpc::client cli(argv[0], 8080);
+  std::cout << "vtk file: " << argv[1] << std::endl;
+  std::cout << "contour value: " << value << std::endl;
+  std::cout << "array: " << arr << std::endl;
+  std::cout << "Connecting to " << argv[0] << "..." << std::endl;
   while (cli.get_connection_state() != rpc::client::connection_state::connected)
   {
     // Wait
   }
   std::cout << "Done!" << std::endl;
-  std::string file = argv[2];
-  std::string col = "v03";
-  auto t0 = std::chrono::high_resolution_clock::now();
-  std::unordered_map<int, float> result =
-    cli.call("LoadContour", file, col, 0.1).as<std::unordered_map<int, float>>();
-  auto t1 = std::chrono::high_resolution_clock::now();
-  std::cout << "time: " << std::chrono::duration<double>(t1 - t0).count() << std::endl;
-  std::cout << result.size() << std::endl;
+  MakeContour(&cli, argv[1], arr, value);
   return 0;
 }
