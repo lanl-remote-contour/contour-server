@@ -33,23 +33,17 @@
  */
 
 #include <rpc/server.h>
+#include <string>
 
-#include <unordered_map>
-
-std::unordered_map<int, float> gen_map()
+std::string Ping()
 {
-  std::unordered_map<int, float> result;
-  for (int i = 0; i < 2000000; i++)
-  {
-    result[i] = i;
-  }
-  return result;
+  return "hello";
 }
 
 int main(int argc, char* argv[])
 {
   rpc::server srv(8080);
-  srv.bind("gen_map", gen_map);
+  srv.bind("ping", Ping);
   srv.run();
   return 0;
 }

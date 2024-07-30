@@ -57,10 +57,11 @@ target_link_libraries(ContourServer PRIVATE ${VTK_LIBRARIES} librpc.a Threads::T
 add_executable(ContourClient ContourClient.cxx vtkPostFilteringSynchronizedTemplates3D.cxx)
 target_link_libraries(ContourClient PRIVATE ${VTK_LIBRARIES} librpc.a Threads::Threads)
 
-add_executable(DummyServer DummyServer.cxx)
-target_link_libraries(DummyServer PRIVATE librpc.a Threads::Threads)
-add_executable(DummyClient DummyClient.cxx)
-target_link_libraries(DummyClient PRIVATE librpc.a Threads::Threads)
+add_executable(PingServer PingServer.cxx)
+target_link_libraries(PingServer PRIVATE librpc.a Threads::Threads)
+add_executable(PingClient PingClient.cxx)
+target_link_libraries(PingClient PRIVATE librpc.a Threads::Threads)
 
-vtk_module_autoinit(TARGETS PreFilterRunner ContourServer BaselineRunner
+vtk_module_autoinit(TARGETS PreFilterRunner
+        CompressUncompress BaselineRunner ContourClient ContourServer
         MODULES ${VTK_LIBRARIES})

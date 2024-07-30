@@ -32,18 +32,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rpc/client.h>
-
 #include <iostream>
-#include <unordered_map>
+#include <rpc/client.h>
+#include <string>
 
 int main(int argc, char* argv[])
 {
   rpc::client cli("localhost", 8080);
-  std::unordered_map<int, float> result = cli.call("gen_map").as<std::unordered_map<int, float>>();
-  std::cout << result.size() << std::endl;
-  std::cout << result[1] << std::endl;
-  std::cout << result[2] << std::endl;
+  std::string result = cli.call("ping").as<std::string>();
+  std::cout << result << std::endl;
   return 0;
 }
-
